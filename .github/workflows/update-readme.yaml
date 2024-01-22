@@ -19,8 +19,8 @@ jobs:
             echo "::set-output name=env_modified::false"
           fi
 
-      - name: Display result
-        run: echo "🔄 .env.example modified: ${{ steps.check-env-modified.outputs.env_modified }}"
+      # - name: Display result
+      #   run: echo "🔄 .env.example modified: ${{ steps.check-env-modified.outputs.env_modified }}"
 
       - name: Update README with environment variables
         if: steps.check-env-modified.outputs.env_modified == 'true'
