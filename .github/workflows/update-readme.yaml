@@ -1,0 +1,41 @@
+name: GitHub Actions Demo
+run-name: ${{ github.actor }} is running an experiment with GitHub Actions 🚀
+on: [push]
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Check if .env.example has been modified
+        id: check-env-modified
+        run: |
+          if git diff --name-only ${{ github.sha }}^ ${{ github.sha }} | grep -qE '^\.env\.example$'; then
+            echo "::set-output name=env_modified::true"
+            cat .env.example >> env_vars.txt
+          else
+            echo "::set-output name=env_modified::false"
+          fi
+
+      - name: Display result
+        run: echo "🔄 .env.example modified: ${{ steps.check-env-modified.outputs.env_modified }}"
+
+      - name: Update README with environment variables
+        if: steps.check-env-modified.outputs.env_modified == 'true'
+        run: |
+          ENV_VARS_SECTION_START="<!--- ENV VARIABLES START --->"
+          ENV_VARS_SECTION_END="<!--- ENV VARIABLES END --->"
+
+          # Create a temporary file with the updated content
+          TMP_README=$(mktemp)
+          cat README.md | \
+            awk -v start="$ENV_VARS_SECTION_START" -v end="$ENV_VARS_SECTION_END" \
+              '{print} $0 ~ start {print "Environment Variables from .env.example:\n```"} $0 ~ end {print "```"}' \
+              > "$TMP_README"
+
+          cat env_vars.txt >> "$TMP_README"
+
+          # Replace README.md with the updated content
+          mv "$TMP_README" README.md
